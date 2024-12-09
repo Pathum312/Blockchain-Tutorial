@@ -60,7 +60,7 @@ class Block:
             None
         """
         self.index: int = index # Index of the block
-        self.timestamp: int = timestamp # Timestamp
+        self.timestamp: float = timestamp # Timestamp
         self.transactions: list[Transaction] = transactions # List of transactions in the block
         self.proof: int = proof # Proof of work
         self.previous_hash: str = previous_hash # Hash of the previous block
