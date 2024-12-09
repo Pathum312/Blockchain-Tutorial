@@ -1,11 +1,40 @@
 
 class Transaction:
+    """
+    Transaction class
+    
+    Attributes:
+        sender (str): Address of the sender
+        recipient (str): Address of the recipient
+        amount (int): Transaction amount
+    """
     def __init__(self, sender: str, recipient: str, amount: int) -> None:
+        """
+        Initializes a new transaction
+        
+        Parameters:
+            sender (str): Address of the sender
+            recipient (str): Address of the recipient
+            amount (int): Transaction amount
+        
+        Returns:
+            None
+        """
         self.sender: str = sender # Address of the sender
         self.recipient: str = recipient # Address of the recipient
         self.amount: int = amount # Transaction amount
 
 class Block:
+    """
+    Block class
+    
+    Attributes:
+        index (int): Index of the block
+        timestamp (int): Timestamp
+        transactions (list[Transaction]): List of transactions in the block
+        proof (int): Proof of work
+        previous_hash (str): Hash of the previous block
+    """
     def __init__(
         self, 
         index: int, 
@@ -14,6 +43,19 @@ class Block:
         proof: int, 
         previous_hash: str
         ) -> None:
+        """
+        Initializes a new block
+        
+        Parameters:
+            index (int): Index of the block
+            timestamp (int): Timestamp
+            transactions (list[Transaction]): List of transactions in the block
+            proof (int): Proof of work
+            previous_hash (str): Hash of the previous block
+        
+        Returns:
+            None
+        """
         self.index: int = index # Index of the block
         self.timestamp: int = timestamp # Timestamp
         self.transactions: list[Transaction] = transactions # List of transactions in the block
@@ -21,6 +63,13 @@ class Block:
         self.previous_hash: str = previous_hash # Hash of the previous block
 
 class Blockchain:
+    """
+    Blockchain class
+    
+    Attributes:
+        chain (list[Block]): List of blocks
+        current_transactions (list[Transaction]): List of transactions
+    """
     def __init__(self) -> None:
         self.chain: list[Block] = [] # List of blocks
         self.current_transactions: list[Transaction] = [] # List of transactions
@@ -30,7 +79,17 @@ class Blockchain:
         ...
     
     def new_transaction(self, sender: str, recipient: str, amount: int) -> int:
+        """
+        Creates a new transaction to go into the next mined Block
         
+        Parameters:
+            sender (str): Address of the sender
+            recipient (str): Address of the recipient
+            amount (int): Transaction amount
+        
+        Returns:
+            int: The index of the Block that will hold this transaction
+        """
         # Create a new transaction
         transaction = Transaction(sender=sender, recipient=recipient, amount=amount)
         
