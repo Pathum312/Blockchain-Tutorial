@@ -1,3 +1,6 @@
+import json
+import hashlib
+from time import time
 
 class Transaction:
     """
@@ -38,7 +41,7 @@ class Block:
     def __init__(
         self, 
         index: int, 
-        timestamp: int, 
+        timestamp: float, 
         transactions: list[Transaction], 
         proof: int, 
         previous_hash: str
@@ -73,10 +76,38 @@ class Blockchain:
     def __init__(self) -> None:
         self.chain: list[Block] = [] # List of blocks
         self.current_transactions: list[Transaction] = [] # List of transactions
+        
+        # Create the genesis block
+        self.new_block(proof=100, previous_hash='1')
     
-    def new_block(self):
-        # Creates a new Block and adds it to the chain
-        ...
+    def new_block(self, proof: int, previous_hash: str | None = None) -> Block:
+        """
+        Creates a new block in the blockchain
+        
+        Parameters:
+            proof (int): Proof of work
+            previous_hash (str | None): Hash of the previous block
+        
+        Returns:
+            Block: The new block
+        """
+        # Create a new block
+        block = Block(
+            index=len(self.chain) + 1,
+            timestamp=time(),
+            transactions=self.current_transactions,
+            proof=proof,
+            previous_hash=previous_hash or self.hash(block=self.chain[-1])
+        )
+        
+        # Reset the current list of transactions
+        self.current_transactions = []
+        
+        # Add the block to the chain
+        self.chain.append(block)
+        
+        # Return the new block
+        return block
     
     def new_transaction(self, sender: str, recipient: str, amount: int) -> int:
         """
@@ -101,10 +132,26 @@ class Blockchain:
     
     @staticmethod
     def hash(block: Block) -> str:
-        # Hashes a block
-        ...
+        """
+        Creates a SHA-256 hash of a Block
+        
+        Parameters:
+            block (Block): Block to hash
+        
+        Returns:
+            str: Hash of the block
+        """
+        # Make sure the dictionary is ordered, or we'll have inconsistent hashes
+        block_string: bytes = json.dumps(obj=block, sort_keys=True).encode()
+        return hashlib.sha256(string=block_string).hexdigest()
     
     @property
     def last_block(self) -> Block:
+        """
+        Returns the last Block in the chain
+        
+        Returns:
+            Block: The last Block in the chain
+        """
         # Returns the last Block in the chain
-        ...
+        return self.chain[-1]
