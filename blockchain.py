@@ -26,6 +26,19 @@ class Transaction:
         self.sender: str = sender # Address of the sender
         self.recipient: str = recipient # Address of the recipient
         self.amount: int = amount # Transaction amount
+    
+    def to_dict(self) -> dict[str, str | int]:
+        """
+        Converts the transaction to a dictionary
+        
+        Returns:
+            dict: Dictionary representation of the transaction
+        """
+        return {
+            'sender': self.sender,
+            'recipient': self.recipient,
+            'amount': self.amount
+        }
 
 class Block:
     """
@@ -64,6 +77,21 @@ class Block:
         self.transactions: list[Transaction] = transactions # List of transactions in the block
         self.proof: int = proof # Proof of work
         self.previous_hash: str = previous_hash # Hash of the previous block
+    
+    def to_dict(self) -> dict[str, str | int | float | list[dict[str, str | int]]]:
+        """
+        Converts the block to a dictionary
+        
+        Returns:
+            dict: Dictionary representation of the block
+        """
+        return {
+            'index': self.index,
+            'timestamp': self.timestamp,
+            'transactions': [transaction.to_dict() for transaction in self.transactions],
+            'proof': self.proof,
+            'previous_hash': self.previous_hash
+        }
 
 class Blockchain:
     """
