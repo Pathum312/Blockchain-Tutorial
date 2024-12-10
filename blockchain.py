@@ -145,6 +145,46 @@ class Blockchain:
         block_string: bytes = json.dumps(obj=block, sort_keys=True).encode()
         return hashlib.sha256(string=block_string).hexdigest()
     
+    def proof_of_work(self, last_proof: int) -> int:
+        """
+        Simple Proof of Work Algorithm:
+        - Find a number p' such that hash(p, p') contains leading 4 zeroes.
+        - p is the previous proof, p' is the new proof.
+        
+        Parameters:
+            last_proof (int): Previous Proof (p)
+        
+        Returns:
+            int: New Proof (p')
+        """
+        proof: int = 0
+        
+        while self.validate_proof(last_proof=last_proof, proof=proof) is False:
+            proof += 1
+        
+        return proof
+        
+    @staticmethod
+    def validate_proof(last_proof: int, proof: int) -> bool:
+        """
+        Validates a Proof to see if the hash has 4 leading zeroes
+        
+        Parameters:
+            last_proof (int): Previous Proof
+            proof (int): Current Proof
+        
+        Returns:
+            bool: True if correct, False if not
+        """
+        # Encode the last proof and the current proof
+        guess: bytes = f'{last_proof}{proof}'.encode()
+        
+        # Hash the guess with SHA-256
+        guess_hash: str = hashlib.sha256(string=guess).hexdigest()
+        
+        # Check if the guess hash has 4 leading zeroes
+        return guess_hash[:4] == '0000'
+    
     @property
     def last_block(self) -> Block:
         """
