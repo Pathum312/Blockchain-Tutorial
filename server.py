@@ -1,8 +1,9 @@
 from typing import Literal
+# from textwrap import dedent
 from flask_cors import CORS
-from flask import Flask, jsonify
 from flask.wrappers import Response
-from blockchain import Blockchain
+from flask import Flask, jsonify, request
+from blockchain import Blockchain, BlockDict
 
 # Instantiate the blockchain
 blockchain = Blockchain()
@@ -20,14 +21,29 @@ def mine() -> tuple[Response, Literal[200]]:
     return jsonify(response), 200
 
 @app.route(rule='/transactions/new', methods=['POST'])
-def new_transaction() -> tuple[Response, Literal[201]]:
-    response: dict[str, str] = {'message': 'Add a new transaction.'}
+def new_transaction() -> tuple[Response, Literal[201] | Literal[400]]:
+    # Get the request payload
+    payload: dict[str, str | int] = request.get_json()
     
+    # Check if all the required fields are present
+    required: list[str] = ['sender', 'recipient', 'amount']
+    for field in required:
+        if not payload.get(field):
+            return jsonify({'message': f'{f'{field}s address' if field != 'amount' else field} is required.'}), 400
+    
+    # Create a new transaction
+    index: int = blockchain.new_transaction(
+        sender=payload.get('sender'), # type: ignore
+        recipient=payload.get('recipient'), # type: ignore
+        amount=payload.get('amount') # type: ignore
+    )
+    
+    response: dict[str, str] = {'message': f'Transaction will be added to Block {index}.'}
     return jsonify(response), 201
 
 @app.route(rule='/chain', methods=['GET'])
 def full_chain() -> tuple[Response, Literal[200]]:
-    response: dict[str, list[dict[str, str | int | float | list[dict[str, str | int]]]] | int] = {
+    response: dict[str, list[BlockDict] | int] = {
         'chain': [block.to_dict() for block in blockchain.chain],
         'length': len(blockchain.chain)
     }

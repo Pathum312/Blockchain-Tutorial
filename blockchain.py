@@ -2,6 +2,9 @@ import json
 import hashlib
 from time import time
 
+TransactionDict = dict[str, str | int] # Dict representation of a transaction
+BlockDict = dict[str, str | int | float | list[TransactionDict]] # Dict representation of a block
+
 class Transaction:
     """
     Transaction class
@@ -27,7 +30,7 @@ class Transaction:
         self.recipient: str = recipient # Address of the recipient
         self.amount: int = amount # Transaction amount
     
-    def to_dict(self) -> dict[str, str | int]:
+    def to_dict(self) -> TransactionDict:
         """
         Converts the transaction to a dictionary
         
@@ -78,7 +81,7 @@ class Block:
         self.proof: int = proof # Proof of work
         self.previous_hash: str = previous_hash # Hash of the previous block
     
-    def to_dict(self) -> dict[str, str | int | float | list[dict[str, str | int]]]:
+    def to_dict(self) -> BlockDict:
         """
         Converts the block to a dictionary
         
@@ -154,6 +157,7 @@ class Blockchain:
         
         # Add the new transaction to the list of transactions
         self.current_transactions.append(transaction)
+        print(self.current_transactions)
         
         # Returns the index of the block that will hold this transaction
         return self.last_block.index + 1
