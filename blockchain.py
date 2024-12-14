@@ -185,7 +185,7 @@ class Blockchain:
             str: Hash of the block
         """
         # Make sure the dictionary is ordered, or we'll have inconsistent hashes
-        block_string: bytes = json.dumps(obj=block, sort_keys=True).encode()
+        block_string: bytes = json.dumps(obj=block.to_dict(), sort_keys=True).encode()
         return hashlib.sha256(string=block_string).hexdigest()
 
     def proof_of_work(self, last_proof: int) -> int:
