@@ -1,6 +1,7 @@
 import hashlib
 import json
 from time import time
+from urllib.parse import ParseResult, urlparse
 
 TransactionDict = dict[str, str | int]  # Dict representation of a transaction
 BlockDict = dict[
@@ -123,6 +124,9 @@ class Blockchain:
         # Create the genesis block
         self.new_block(proof=100, previous_hash="1")
 
+        # Collection of unordered unique nodes
+        self.nodes: set[str] = set()
+
     def new_block(self, proof: int, previous_hash: str | None = None) -> Block:
         """
         Creates a new block in the blockchain
@@ -206,6 +210,19 @@ class Blockchain:
             proof += 1
 
         return proof
+
+    def register_node(self, address: str) -> None:
+        """
+        Add a new node to the list of nodes
+
+        Parameters:
+            address (str): Address of the node
+
+        Returns:
+            None
+        """
+        parsed_url: ParseResult = urlparse(url=address)
+        self.nodes.add(parsed_url.netloc)
 
     @staticmethod
     def validate_proof(last_proof: int, proof: int) -> bool:

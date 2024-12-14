@@ -29,7 +29,7 @@ def mine() -> tuple[Response, Literal[200]]:
     # Get the proof of the last block
     last_proof: int = last_block.proof
 
-    # Get the next proof of work
+    # Find the proof for the new block
     proof: int = blockchain.proof_of_work(last_proof=last_proof)
 
     # A reward must be issued to the miner
