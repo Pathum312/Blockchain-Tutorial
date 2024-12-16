@@ -101,5 +101,42 @@ def full_chain() -> tuple[Response, Literal[200]]:
     return jsonify(response), 200
 
 
+@app.route(rule="/nodes/register", methods=["POST"])
+def register_nodes() -> tuple[Response, Literal[201] | Literal[400]]:
+    # Get the request payload
+    payload: dict[str, list[str] | None] = request.get_json()
+
+    # Get the nodes
+    nodes: list[str] | None = payload.get("nodes")
+
+    # Check if the nodes are valid
+    if nodes is None:
+        return (
+            jsonify({"message": "No node(s) provided."}),
+            400,
+        )
+
+    # Add the nodes to the blockchain
+    for node in nodes:
+        blockchain.register_node(address=node)
+
+    response: dict[str, str] = {"message": "New nodes have been added."}
+
+    return jsonify(response), 201
+
+
+@app.route(rule="/nodes/resolve", methods=["GET"])
+def consensus() -> tuple[Response, Literal[200]]:
+    # Result of the consensus
+    replaced: bool = blockchain.resolve_conflicts()
+
+    if replaced:
+        response: dict[str, str] = {"message": "Our chain was replaced."}
+    else:
+        response: dict[str, str] = {"message": "Our chain is authoritative."}
+
+    return jsonify(response), 200
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

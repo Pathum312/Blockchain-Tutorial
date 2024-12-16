@@ -3,6 +3,9 @@ import json
 from time import time
 from urllib.parse import ParseResult, urlparse
 
+import requests
+from requests import Response
+
 TransactionDict = dict[str, str | int]  # Dict representation of a transaction
 BlockDict = dict[
     str, str | int | float | list[TransactionDict]
@@ -177,21 +180,6 @@ class Blockchain:
         # Returns the index of the block that will hold this transaction
         return self.last_block.index + 1
 
-    @staticmethod
-    def hash(block: Block) -> str:
-        """
-        Creates a SHA-256 hash of a Block
-
-        Parameters:
-            block (Block): Block to hash
-
-        Returns:
-            str: Hash of the block
-        """
-        # Make sure the dictionary is ordered, or we'll have inconsistent hashes
-        block_string: bytes = json.dumps(obj=block.to_dict(), sort_keys=True).encode()
-        return hashlib.sha256(string=block_string).hexdigest()
-
     def proof_of_work(self, last_proof: int) -> int:
         """
         Simple Proof of Work Algorithm:
@@ -223,6 +211,91 @@ class Blockchain:
         """
         parsed_url: ParseResult = urlparse(url=address)
         self.nodes.add(parsed_url.netloc)
+
+    def validate_chain(self, chain: list[Block]) -> bool:
+        """
+        Determine if a given blockchain is valid
+
+        Parameters:
+            chain (list[Block]): A blockchain
+
+        Returns:
+            bool: True if valid, False if not
+        """
+        last_block: Block = chain[0]  # Starting with the genesis block
+        current_index: int = 1
+
+        while current_index < len(chain):
+            block: Block = chain[current_index]
+
+            # Check if the hash of the block is correct
+            if block.previous_hash != self.hash(block=last_block):
+                return False
+
+            # Check if the Proof of Work is correct
+            if not self.validate_proof(last_proof=last_block.proof, proof=block.proof):
+                return False
+
+            last_block = block
+            current_index += 1
+
+        return True
+
+    def resolve_conflicts(self) -> bool:
+        """
+        Consensus algorithm to resolve conflicts in the blockchain
+
+        Returns:
+            bool: True if the chain was replaced, False if not
+        """
+        # Get all the nodes of the blockchain
+        neighbors: set[str] = self.nodes
+
+        # Get the blockchain
+        new_chain: list[Block] = []
+
+        # Get the length of the blockchain
+        max_length: int = len(self.chain)
+
+        # Loop through all the nodes
+        for node in neighbors:
+            # Send a request to /chain of each node
+            response: Response = requests.get(url=f"http://{node}/chain")
+
+            if response.status_code == 200:
+                # Length of the blockchain of this node
+                length: int = response.json()["length"]
+
+                # The blockchain of this node
+                chain: list[Block] = response.json()["chain"]
+
+                # Check if this chain is longer than the current one and if it's valid;
+                # Then replace the current chain with this node's chain
+                if length > max_length and self.validate_chain(chain=chain):
+                    max_length = length
+                    new_chain = chain
+
+        # If there is a new chain, replace the current chain
+        if new_chain:
+            self.chain = new_chain
+            return True
+
+        return False
+
+    @staticmethod
+    def hash(block: Block) -> str:
+        """
+        Creates a SHA-256 hash of a Block
+
+        Parameters:
+            block (Block): Block to hash
+
+        Returns:
+            str: Hash of the block
+        """
+        # Make sure the dictionary is ordered, or we'll have inconsistent hashes
+        block_string: bytes = json.dumps(obj=block.to_dict(), sort_keys=True).encode()
+        return hashlib.sha256(string=block_string).hexdigest()
 
     @staticmethod
     def validate_proof(last_proof: int, proof: int) -> bool:
